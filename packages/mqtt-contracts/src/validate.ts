@@ -4,17 +4,16 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ErrorObject, ValidateFunction } from "ajv";
 
-// Ajv/ajv-formats are CJS; createRequire avoids NodeNext default-import issues in CI.
+/**
+ * Ajv ships as CJS. Under `moduleResolution: NodeNext` on Linux CI, default
+ * ESM imports are not constructable/callable. Load via require + narrow at runtime.
+ */
 const require = createRequire(import.meta.url);
-const AjvModule = require("ajv") as {
-  default?: new (options?: object) => import("ajv").default;
-} & (new (options?: object) => import("ajv").default);
-const addFormatsModule = require("ajv-formats") as {
-  default?: (ajv: import("ajv").default) => import("ajv").default;
-} & ((ajv: import("ajv").default) => import("ajv").default);
-
-const Ajv = AjvModule.default ?? AjvModule;
-const addFormats = addFormatsModule.default ?? addFormatsModule;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- CJS interop for ajv
+const Ajv = (require("ajv").default ?? require("ajv")) as new (options?: object) => any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- CJS interop for ajv-formats
+const addFormats = (require("ajv-formats").default ??
+  require("ajv-formats")) as (ajv: any) => void;
 
 export type MqttSchemaName =
   | "telemetria.v1"
