@@ -1,8 +1,20 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
-import addFormats from "ajv-formats";
+import type { ErrorObject, ValidateFunction } from "ajv";
+
+// Ajv/ajv-formats are CJS; createRequire avoids NodeNext default-import issues in CI.
+const require = createRequire(import.meta.url);
+const AjvModule = require("ajv") as {
+  default?: new (options?: object) => import("ajv").default;
+} & (new (options?: object) => import("ajv").default);
+const addFormatsModule = require("ajv-formats") as {
+  default?: (ajv: import("ajv").default) => import("ajv").default;
+} & ((ajv: import("ajv").default) => import("ajv").default);
+
+const Ajv = AjvModule.default ?? AjvModule;
+const addFormats = addFormatsModule.default ?? addFormatsModule;
 
 export type MqttSchemaName =
   | "telemetria.v1"
