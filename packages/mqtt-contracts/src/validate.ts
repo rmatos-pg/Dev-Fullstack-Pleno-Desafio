@@ -4,16 +4,42 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ErrorObject, ValidateFunction } from "ajv";
 
+type AjvLike = {
+  compile: (schema: object) => ValidateFunction;
+};
+
+type AjvConstructor = new (options?: {
+  allErrors?: boolean;
+  strict?: boolean;
+  removeAdditional?: boolean;
+}) => AjvLike;
+
+type AddFormatsFn = (ajv: AjvLike) => unknown;
+
 /**
- * Ajv ships as CJS. Under `moduleResolution: NodeNext` on Linux CI, default
- * ESM imports are not constructable/callable. Load via require + narrow at runtime.
+ * Ajv/ajv-formats are CJS. Under NodeNext on Linux CI, ESM default imports are
+ * not constructable/callable — load via createRequire and normalize `default`.
  */
 const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- CJS interop for ajv
-const Ajv = (require("ajv").default ?? require("ajv")) as new (options?: object) => any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- CJS interop for ajv-formats
-const addFormats = (require("ajv-formats").default ??
-  require("ajv-formats")) as (ajv: any) => void;
+
+function loadCjsExport<T>(moduleId: string): T {
+  const loaded: unknown = require(moduleId);
+  if (typeof loaded === "function") {
+    return loaded as T;
+  }
+  if (
+    typeof loaded === "object" &&
+    loaded !== null &&
+    "default" in loaded &&
+    typeof (loaded as { default: unknown }).default === "function"
+  ) {
+    return (loaded as { default: T }).default;
+  }
+  throw new Error(`Unable to load CJS export from ${moduleId}`);
+}
+
+const Ajv = loadCjsExport<AjvConstructor>("ajv");
+const addFormats = loadCjsExport<AddFormatsFn>("ajv-formats");
 
 export type MqttSchemaName =
   | "telemetria.v1"

@@ -2,6 +2,7 @@
   "name": "oee-challenge",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "description": "Arquitetura OEE IoT (MQTT) — microsserviços lógicos + núcleo executável",
   "engines": {
     "node": ">=22"
@@ -12,12 +13,13 @@
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "build": "npm run build --workspaces --if-present",
     "validate:openapi": "redocly lint services/dashboard-api/openapi.yaml --config redocly.yaml",
-    "validate:schemas": "npm run validate -w @oee/mqtt-contracts --if-present"
+    "validate:schemas": "npm run validate -w @oee/mqtt-contracts --if-present",
+    "ci:local": "npm run typecheck && npm run lint && npm run coverage && npm run validate:schemas && npm run validate:openapi"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
