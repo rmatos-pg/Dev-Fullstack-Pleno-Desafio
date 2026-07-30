@@ -1,0 +1,374 @@
+openapi: 3.1.0
+info:
+  title: Dashboard API — Plataforma OEE
+  version: 0.1.0
+  description: |
+    Contrato de leitura do dashboard operacional (MVP).
+    Granularidade de domínio: máquina + turno.
+    Linha/galpão são agregações derivadas.
+    Mecanismo de atualização quase em tempo real fica fora deste contrato (ver wireframe).
+  contact:
+    name: Rodrigo Matos
+  license:
+    name: MIT
+    identifier: MIT
+
+# MVP sem autenticação (explícito). Auth fica como evolução futura.
+security: []
+
+servers:
+  - url: /api/v1
+    description: Placeholder do MVP (sem runtime HTTP neste desafio)
+
+tags:
+  - name: machines
+    description: Consultas por máquina
+  - name: lines
+    description: Agregações por linha (derivadas)
+  - name: sites
+    description: Agregações por galpão (derivadas)
+
+paths:
+  /machines/{machineId}/oee:
+    get:
+      tags: [machines]
+      operationId: getMachineOee
+      summary: OEE atual e fatores (D, P, Q) por máquina e turno
+      parameters:
+        - $ref: "#/components/parameters/MachineId"
+        - $ref: "#/components/parameters/ShiftId"
+      responses:
+        "200":
+          description: Snapshot de OEE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OeeSnapshot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /machines/{machineId}/status:
+    get:
+      tags: [machines]
+      operationId: getMachineStatus
+      summary: Estado ao vivo da máquina (parada/anômala/rodando)
+      parameters:
+        - $ref: "#/components/parameters/MachineId"
+      responses:
+        "200":
+          description: Status operacional
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MachineStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /machines/{machineId}/losses:
+    get:
+      tags: [machines]
+      operationId: getMachineLosses
+      summary: Pareto de motivos de parada no turno
+      parameters:
+        - $ref: "#/components/parameters/MachineId"
+        - $ref: "#/components/parameters/ShiftId"
+      responses:
+        "200":
+          description: Perdas agregadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LossPareto"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /machines/{machineId}/timeline:
+    get:
+      tags: [machines]
+      operationId: getMachineTimeline
+      summary: Série temporal de OEE
+      parameters:
+        - $ref: "#/components/parameters/MachineId"
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Pontos de OEE no intervalo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OeeTimeline"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /lines/{lineId}/summary:
+    get:
+      tags: [lines]
+      operationId: getLineSummary
+      summary: Resumo agregado da linha (derivado de máquina/turno)
+      parameters:
+        - $ref: "#/components/parameters/LineId"
+        - $ref: "#/components/parameters/ShiftId"
+      responses:
+        "200":
+          description: Sumário da linha
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /sites/{siteId}/summary:
+    get:
+      tags: [sites]
+      operationId: getSiteSummary
+      summary: Resumo agregado do galpão (evolução futura)
+      parameters:
+        - $ref: "#/components/parameters/SiteId"
+        - $ref: "#/components/parameters/ShiftId"
+      responses:
+        "200":
+          description: Sumário do galpão
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  parameters:
+    MachineId:
+      name: machineId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        example: TEAR-G1-L2-07
+    LineId:
+      name: lineId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        example: G1-L2
+    SiteId:
+      name: siteId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        example: G1
+    ShiftId:
+      name: shift
+      in: query
+      required: true
+      description: Identificador do turno (granularidade núcleo máquina+turno)
+      schema:
+        type: string
+        minLength: 1
+        example: T2-2026-03-10
+
+  responses:
+    BadRequest:
+      description: Parâmetros inválidos
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+    OeeSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - machine_id
+        - shift_id
+        - disponibilidade
+        - performance
+        - qualidade
+        - oee
+        - dados_inconsistentes
+      properties:
+        machine_id:
+          type: string
+        shift_id:
+          type: string
+        disponibilidade:
+          type: number
+          minimum: 0
+          maximum: 1
+        performance:
+          type: number
+          minimum: 0
+          maximum: 1
+        qualidade:
+          type: number
+          minimum: 0
+          maximum: 1
+        oee:
+          type: number
+          minimum: 0
+          maximum: 1
+        dados_inconsistentes:
+          type: boolean
+        motivos:
+          type: array
+          items:
+            type: string
+
+    MachineStatus:
+      type: object
+      additionalProperties: false
+      required: [machine_id, estado, atualizado_em]
+      properties:
+        machine_id:
+          type: string
+        estado:
+          type: string
+          enum: [rodando, parado, setup, manutencao]
+        motivo_codigo:
+          type:
+            - string
+            - "null"
+        anomala:
+          type: boolean
+          description: "Sinalização operacional (ex.: parada prolongada)"
+        atualizado_em:
+          type: string
+          format: date-time
+
+    LossItem:
+      type: object
+      additionalProperties: false
+      required: [motivo_codigo, motivo_descricao, minutos, planejada]
+      properties:
+        motivo_codigo:
+          type: string
+        motivo_descricao:
+          type: string
+        minutos:
+          type: number
+          minimum: 0
+        planejada:
+          type: boolean
+
+    LossPareto:
+      type: object
+      additionalProperties: false
+      required: [machine_id, shift_id, itens]
+      properties:
+        machine_id:
+          type: string
+        shift_id:
+          type: string
+        itens:
+          type: array
+          items:
+            $ref: "#/components/schemas/LossItem"
+
+    OeeTimelinePoint:
+      type: object
+      additionalProperties: false
+      required: [ts, oee, dados_inconsistentes]
+      properties:
+        ts:
+          type: string
+          format: date-time
+        oee:
+          type: number
+          minimum: 0
+          maximum: 1
+        dados_inconsistentes:
+          type: boolean
+
+    OeeTimeline:
+      type: object
+      additionalProperties: false
+      required: [machine_id, from, to, pontos]
+      properties:
+        machine_id:
+          type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        pontos:
+          type: array
+          items:
+            $ref: "#/components/schemas/OeeTimelinePoint"
+
+    MachineRankingItem:
+      type: object
+      additionalProperties: false
+      required: [machine_id, oee]
+      properties:
+        machine_id:
+          type: string
+        oee:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    LineSummary:
+      type: object
+      additionalProperties: false
+      required: [id, shift_id, oee_agregado, ranking_maquinas]
+      properties:
+        id:
+          type: string
+          description: Identificador da linha ou galpão
+        shift_id:
+          type: string
+        oee_agregado:
+          type: number
+          minimum: 0
+          maximum: 1
+        ranking_maquinas:
+          type: array
+          items:
+            $ref: "#/components/schemas/MachineRankingItem"

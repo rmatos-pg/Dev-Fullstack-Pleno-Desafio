@@ -1,0 +1,10 @@
+{
+  "name": "@oee/mqtt-ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ingestão MQTT — validação, dedup, DLQ (documentado no MVP)",
+  "scripts": {
+    "typecheck": "node -e \"process.exit(0)\""
+  }
+}

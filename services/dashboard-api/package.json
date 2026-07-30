@@ -1,0 +1,10 @@
+{
+  "name": "@oee/dashboard-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API de leitura do dashboard (OpenAPI no MVP)",
+  "scripts": {
+    "typecheck": "node -e \"process.exit(0)\""
+  }
+}
