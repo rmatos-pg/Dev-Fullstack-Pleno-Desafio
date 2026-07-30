@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://oee.local/schemas/parada.v1.json",
+  "title": "parada.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "event_id",
+    "maquina_id",
+    "ts_sensor",
+    "motivo_codigo",
+    "motivo_descricao",
+    "planejada"
+  ],
+  "properties": {
+    "schema": { "const": "parada.v1" },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identificador único do evento para idempotência (ADR-002)."
+    },
+    "maquina_id": { "type": "string", "minLength": 1 },
+    "ts_sensor": { "type": "string", "format": "date-time" },
+    "motivo_codigo": { "type": "string", "minLength": 1 },
+    "motivo_descricao": { "type": "string", "minLength": 1 },
+    "planejada": { "type": "boolean" }
+  }
+}

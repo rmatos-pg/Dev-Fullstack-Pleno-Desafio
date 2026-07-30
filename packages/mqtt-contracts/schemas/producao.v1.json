@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://oee.local/schemas/producao.v1.json",
+  "title": "producao.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "event_id",
+    "maquina_id",
+    "ts_sensor",
+    "unidades_produzidas",
+    "unidades_refugo",
+    "ordem_producao"
+  ],
+  "properties": {
+    "schema": { "const": "producao.v1" },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identificador único do evento para idempotência (ADR-002)."
+    },
+    "maquina_id": { "type": "string", "minLength": 1 },
+    "ts_sensor": { "type": "string", "format": "date-time" },
+    "unidades_produzidas": { "type": "integer", "minimum": 0 },
+    "unidades_refugo": { "type": "integer", "minimum": 0 },
+    "ordem_producao": { "type": "string", "minLength": 1 }
+  }
+}

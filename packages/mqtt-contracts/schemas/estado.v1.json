@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://oee.local/schemas/estado.v1.json",
+  "title": "estado.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "event_id",
+    "maquina_id",
+    "ts_sensor",
+    "estado",
+    "estado_anterior"
+  ],
+  "properties": {
+    "schema": { "const": "estado.v1" },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identificador único do evento para idempotência (ADR-002)."
+    },
+    "maquina_id": { "type": "string", "minLength": 1 },
+    "ts_sensor": { "type": "string", "format": "date-time" },
+    "estado": {
+      "type": "string",
+      "enum": ["rodando", "parado", "setup", "manutencao"]
+    },
+    "estado_anterior": {
+      "type": "string",
+      "enum": ["rodando", "parado", "setup", "manutencao"]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@oee/oee-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Núcleo de cálculo OEE (D × P × Q)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config vitest.config.ts"
+  }
+}

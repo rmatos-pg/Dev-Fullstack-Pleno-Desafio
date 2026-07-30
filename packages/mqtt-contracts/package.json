@@ -1,0 +1,19 @@
+{
+  "name": "@oee/mqtt-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JSON Schemas MQTT versionados (contratos compartilhados)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "validate": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

@@ -1,0 +1,7 @@
+# Redocly — validação do contrato da dashboard-api
+extends:
+  - recommended
+
+apis:
+  dashboard@v1:
+    root: services/dashboard-api/openapi.yaml

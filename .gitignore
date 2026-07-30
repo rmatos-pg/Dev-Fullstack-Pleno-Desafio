@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+reports/
+.sonar/
+.scannerwork/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+*.tsbuildinfo
+.turbo/
+.idea/
+.vscode/*
+!.vscode/extensions.json
