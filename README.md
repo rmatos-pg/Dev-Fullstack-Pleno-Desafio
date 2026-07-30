@@ -1,3 +1,75 @@
+# Desafio OEE — Malharia Contínua
+
+Entrega do desafio técnico (fork): arquitetura event-driven para ingestão MQTT e dashboard operacional de OEE.
+
+| | |
+|--|--|
+| **Branch** | `desafio/rmatos` |
+| **Autor** | Rodrigo Matos |
+| **Arquitetura** | [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) |
+| **Decisões** | [`docs/DECISOES.md`](docs/DECISOES.md) · [`docs/TRADEOFFS.md`](docs/TRADEOFFS.md) · [`docs/adr/`](docs/adr/) |
+| **IA / harness** | [`docs/AI_ASSISTED.md`](docs/AI_ASSISTED.md) · [`AGENTS.md`](AGENTS.md) |
+
+## Como rodar
+
+**Requisitos:** Node.js **22+**, npm (workspaces).
+
+```bash
+npm install
+npm run typecheck
+npm run lint
+npm test
+npm run coverage
+npm run validate:schemas
+npm run validate:openapi
+```
+
+| Comando | O que valida |
+|---------|----------------|
+| `typecheck` / `lint` | TypeScript + ESLint |
+| `test` / `coverage` | Vitest (OEE + contratos MQTT), coverage ≥ 85% |
+| `validate:schemas` | Contract tests JSON Schema (Ajv) |
+| `validate:openapi` | OpenAPI via Redocly |
+
+CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (SonarCloud apenas se `SONAR_TOKEN` existir — estratégia S1).
+
+## O que foi entregue
+
+- [x] Arquitetura + C4 (contexto e contêiner) — [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)
+- [x] ADRs (microsserviços lógicos, MQTT, persistência) — [`docs/adr/`](docs/adr/)
+- [x] Contratos MQTT versionados (`*.v1` + `event_id`) — [`packages/mqtt-contracts`](packages/mqtt-contracts)
+- [x] Núcleo `oee-service` (D × P × Q) + testes — [`services/oee-service`](services/oee-service)
+- [x] OpenAPI 3.1 — [`services/dashboard-api/openapi.yaml`](services/dashboard-api/openapi.yaml)
+- [x] Wireframe do dashboard — [`docs/wireframe/dashboard.md`](docs/wireframe/dashboard.md)
+- [x] CI / quality gates — [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+- [x] Registro de uso de IA — [`docs/AI_ASSISTED.md`](docs/AI_ASSISTED.md)
+
+## O que ficou fora do MVP (consciente)
+
+| Item | Por quê |
+|------|---------|
+| Runtime completo dos quatro serviços / `docker-compose` | MVP prioriza contratos, OEE e documentação arquitetural |
+| Broker IoT real / provisionamento AWS | Enunciado dispensa; desenho em `ARQUITETURA.md` |
+| Deploy AWS automatizado (OIDC/ECS) | CI valida qualidade; deploy permanece documentado |
+| Frontend implementado | Opção B: wireframe + OpenAPI |
+| C4 de Componentes / MTBF-MTTR | Evolução após o núcleo estável |
+
+## Arquitetura resumida
+
+```text
+Máquinas → MQTT Bridge → IoT Core → SQS → mqtt-ingestion
+                                              ↓
+                                        oee-service
+                                              ↓
+                                    dashboard-api → dashboard-ui
+```
+
+Microsserviços **lógicos**; no código do MVP: `mqtt-contracts`, `oee-service`, OpenAPI e wireframe. Detalhes: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
+
+---
+
+# Enunciado original do desafio
+
 # Desafio Técnico - Desenvolvedor(a) Pleno Full Stack
 
 > **Tema:** Arquitetura de base de software para ingestão de dados IoT (MQTT) e
